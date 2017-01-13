@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">RutgersSustainability</string>
+    <string name="take_pic_title">Take Picture</string>
+    <string name="view_pic_title">View Pictures</string>
+</resources>
