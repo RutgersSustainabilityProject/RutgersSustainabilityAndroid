@@ -1,7 +1,6 @@
 package com.rutgerssustainability.android.rutgerssustainability.api;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -11,7 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class RestClient {
 
-    private static final String BASE_URL = "http://localhost:3000";
+    private static final String BASE_URL = "http://192.168.1.120:3000";
 
     private TrashService trashService;
 
