@@ -2,4 +2,7 @@
     <string name="app_name">RutgersSustainability</string>
     <string name="take_pic_title">Take Picture</string>
     <string name="view_pic_title">View Pictures</string>
+    <string name="send_pic_title">Send Picture</string>
+    <string name="tags_hint">Tags (ex: bottle, wrapper, food)</string>
+    <string name="cancel_btn_title">Cancel</string>
 </resources>

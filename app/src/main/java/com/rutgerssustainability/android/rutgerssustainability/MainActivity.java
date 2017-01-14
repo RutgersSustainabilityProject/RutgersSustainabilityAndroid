@@ -46,9 +46,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            //TODO: make intent go to after photo activity
-            Intent afterPhoto = new Intent();
+            Bundle extras = new Bundle();
+            Intent afterPhoto = new Intent(MainActivity.this, AfterPhotoActivity.class);
             extras.putString("path",mCurrentPhotoPath);
             afterPhoto.putExtras(extras);
             startActivity(afterPhoto);
@@ -71,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.fileprovider",
-                        photoFile);
+                        "com.rutgerssustainability.android.fileprovider",
+                      photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
