@@ -1,7 +1,10 @@
 package com.rutgerssustainability.android.rutgerssustainability;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -10,6 +13,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.location.Location;
 import android.media.ExifInterface;
+import android.os.AsyncTask;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,15 +25,28 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.rutgerssustainability.android.rutgerssustainability.api.RestClient;
 import com.rutgerssustainability.android.rutgerssustainability.api.TrashService;
+import com.rutgerssustainability.android.rutgerssustainability.aws.AWSHelper;
+import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 import com.squareup.okhttp.ResponseBody;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -94,45 +112,121 @@ public class AfterPhotoActivity extends AppCompatActivity implements
                     .build();
         }
         sendPicBtn.setEnabled(false);
+        final ProgressDialog dialog = new ProgressDialog(AfterPhotoActivity.this);
         sendPicBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String tags = tagsField.getText().toString();
-                tags = processTags(tags);
-                File file = new File(photoPath);
-                RequestBody requestBody = RequestBody.create(okhttp3.MediaType.parse("multipart/form-data"), file);
-                MultipartBody.Part imagePart = MultipartBody.Part.createFormData("trashPhoto", file.getName(), requestBody);
-                MultipartBody.Part userIdPart = MultipartBody.Part.createFormData("userId", mDeviceId);
-                MultipartBody.Part latitudePart = MultipartBody.Part.createFormData("latitude",String.valueOf(mLastLocation.getLatitude()));
-                MultipartBody.Part longitudePart = MultipartBody.Part.createFormData("longitude", String.valueOf(mLastLocation.getLongitude()));
-                long epoch = System.currentTimeMillis();
-                MultipartBody.Part epochPart = MultipartBody.Part.createFormData("epoch", String.valueOf(epoch));
-                MultipartBody.Part tagsPart = MultipartBody.Part.createFormData("tags", tags);
-                RestClient restClient = new RestClient();
-                TrashService trashService = restClient.getTrashService();
-                Call<ResponseBody> call = trashService.postTrash(imagePart,userIdPart,latitudePart,longitudePart,epochPart,tagsPart);
-                call.enqueue(new Callback<ResponseBody>() {
-                    @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        Log.d(TAG,"Call Success!");
-                        Log.d(TAG,"Response message: " + response.message());
-                    }
-
-                    @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        Log.e(TAG,"Call failed: " + t.getMessage());
-                    }
-                });
+                new AmazonService(getApplicationContext(),photoPath,tags).execute();
             }
         });
         cancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent back = new Intent(AfterPhotoActivity.this, MainActivity.class);
-                finish();
-                startActivity(back);
+                leave();
             }
         });
+    }
+
+    private class AmazonService extends AsyncTask<String, Boolean, Boolean> {
+        Context mContext;
+        String mPhotoPath;
+        String mTags;
+        boolean go = false;
+        public AmazonService(Context context, String photoPath, String tags) {
+            mContext = context;
+            mPhotoPath = photoPath;
+            mTags = tags;
+        }
+
+        @Override
+        protected Boolean doInBackground(String ... params) {
+            final String newTags = processTags(mTags);
+            final File file = new File(mPhotoPath);
+            final TransferUtility transferUtility = AWSHelper.getTransferUtility(getApplicationContext());
+            Log.d(TAG, "file size: " + file.length());
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    final ProgressDialog progressDialog = new ProgressDialog(AfterPhotoActivity.this);
+                    progressDialog.setTitle("Uploading...");
+                    progressDialog.setMax(100);
+
+                    TransferObserver transferObserver = transferUtility.upload(Constants.AWS.BUCKET_NAME,
+                            file.getName(),
+                            file,
+                            CannedAccessControlList.PublicRead);
+                    transferObserver.setTransferListener(new TransferListener() {
+                        @Override
+                        public void onStateChanged(int id, TransferState state) {
+                            Log.d(TAG, "State: " + state.name());
+                            if (state == TransferState.COMPLETED) {
+                                progressDialog.dismiss();
+                                String fileS3Url = AWSHelper.createS3FileUrl(file.getName());
+                                Log.d(TAG, "s3 Url: " + fileS3Url);
+                                MultipartBody.Part imagePart = MultipartBody.Part.createFormData("trashPhoto", fileS3Url);
+                                MultipartBody.Part userIdPart = MultipartBody.Part.createFormData("userId", mDeviceId);
+                                MultipartBody.Part latitudePart = MultipartBody.Part.createFormData("latitude", String.valueOf(mLastLocation.getLatitude()));
+                                MultipartBody.Part longitudePart = MultipartBody.Part.createFormData("longitude", String.valueOf(mLastLocation.getLongitude()));
+                                long epoch = System.currentTimeMillis();
+                                MultipartBody.Part epochPart = MultipartBody.Part.createFormData("epoch", String.valueOf(epoch));
+                                MultipartBody.Part tagsPart = MultipartBody.Part.createFormData("tags", newTags);
+                                RestClient restClient = new RestClient();
+                                TrashService trashService = restClient.getTrashService();
+                                Call<Void> call = trashService.postTrash(imagePart, userIdPart, latitudePart, longitudePart, epochPart, tagsPart);
+                                call.enqueue(new Callback<Void>() {
+                                    @Override
+                                    public void onResponse(Call<Void> call, Response<Void> response) {
+                                        Log.d(TAG, "Call Success!");
+                                        Log.d(TAG, "Response message: " + response.message());
+                                        AlertDialog.Builder builder = new AlertDialog.Builder(AfterPhotoActivity.this);
+                                        AlertDialog dialog = builder.setTitle("Trash posted!").setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                leave();
+                                            }
+                                        }).create();
+                                        dialog.show();
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<Void> call, Throwable t) {
+                                        Log.e(TAG, "Call failed: " + t.getMessage());
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                            double percentage = (double) bytesCurrent / (double) bytesTotal;
+                            int points = (int) (percentage * 100);
+                            progressDialog.setProgress(points);
+                            if (!go) {
+                                progressDialog.show();
+                                go = true;
+                            }
+                            Log.d(TAG, "bytesCurrent: " + bytesCurrent);
+                        }
+
+                        @Override
+                        public void onError(int id, Exception ex) {
+                            Log.e(TAG, "AWS ERROR: " + ex.getMessage());
+                        }
+                    });
+
+                }
+            });
+
+            return true;
+        }
+
+    }
+
+    private void leave() {
+        Intent back = new Intent(AfterPhotoActivity.this, MainActivity.class);
+        finish();
+        startActivity(back);
     }
 
     @Override
