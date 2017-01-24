@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     String mCurrentPhotoPath = null;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         takePicBtn = (Button)findViewById(R.id.take_pic_btn);
@@ -41,13 +41,19 @@ public class MainActivity extends AppCompatActivity {
                 executeTakePictureIntent();
             }
         });
+        viewPicsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                executeViewPicturesIntent();
+            }
+        });
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            Bundle extras = new Bundle();
-            Intent afterPhoto = new Intent(MainActivity.this, AfterPhotoActivity.class);
+            final Bundle extras = new Bundle();
+            final Intent afterPhoto = new Intent(MainActivity.this, AfterPhotoActivity.class);
             extras.putString("path",mCurrentPhotoPath);
             afterPhoto.putExtras(extras);
             startActivity(afterPhoto);
@@ -56,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void executeTakePictureIntent(){
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        final Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
@@ -69,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
+                final Uri photoURI = FileProvider.getUriForFile(this,
                         "com.rutgerssustainability.android.fileprovider",
                       photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
@@ -78,13 +84,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void executeViewPicturesIntent() {
+        final Intent intent = new Intent(MainActivity.this, ViewPhotoActivity.class);
+        startActivity(intent);
+    }
 
-    private File createImageFile(Context context) throws IOException {
+    private File createImageFile(final Context context) throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
+        final String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        final String imageFileName = "JPEG_" + timeStamp + "_";
+        final File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        final File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
