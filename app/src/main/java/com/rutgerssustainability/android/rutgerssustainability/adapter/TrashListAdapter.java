@@ -11,9 +11,9 @@ import android.widget.TextView;
 
 import com.rutgerssustainability.android.rutgerssustainability.R;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.Trash;
+import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
 import com.squareup.picasso.Picasso;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -23,11 +23,13 @@ import java.util.Date;
 public class TrashListAdapter extends BaseAdapter {
     private Trash[] trash;
     private Context ctx;
+    private SharedPreferenceUtil sharedPreferenceUtil;
 
     public TrashListAdapter(final Trash[] trash, final Context ctx) {
         super();
         this.trash = trash;
         this.ctx = ctx;
+        this.sharedPreferenceUtil = new SharedPreferenceUtil(ctx);
     }
 
     static class ViewHolder {
@@ -67,7 +69,11 @@ public class TrashListAdapter extends BaseAdapter {
         convertView.setBackgroundColor(Color.BLACK);
         final Trash currentTrash = getItem(position);
         final String pictureUrl = currentTrash.getPictureUrl();
-        Picasso.with(this.ctx).load(pictureUrl).rotate(90).into(viewHolder.trashImageView);
+        final String[] urlComponents = pictureUrl.split("/");
+        final int len = urlComponents.length;
+        final String photoPath = urlComponents[len - 1];
+        final int degreesToRotate = sharedPreferenceUtil.getOrientationForImage(photoPath);
+        Picasso.with(this.ctx).load(pictureUrl).rotate(degreesToRotate).fit().into(viewHolder.trashImageView);
         final long epoch = currentTrash.getEpoch();
         final Date trashDate = new Date(epoch);
         final String dateString = new SimpleDateFormat("MM/dd/yyyy HH:mm").format(trashDate);

@@ -35,6 +35,8 @@ import com.rutgerssustainability.android.rutgerssustainability.api.TrashService;
 import com.rutgerssustainability.android.rutgerssustainability.aws.AWSHelper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 import com.rutgerssustainability.android.rutgerssustainability.utils.ImageHelper;
+import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
+
 import java.io.File;
 
 
@@ -62,6 +64,9 @@ public class AfterPhotoActivity extends AppCompatActivity implements
     //variables
     private String mDeviceId = null;
 
+    //utils
+    private SharedPreferenceUtil sharedPreferenceUtil;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,8 +75,10 @@ public class AfterPhotoActivity extends AppCompatActivity implements
         sendPicBtn = (Button) findViewById(R.id.send_pic_btn);
         cancelBtn = (Button) findViewById(R.id.cancel_btn);
         tagsField = (EditText) findViewById(R.id.tags_field);
+        sharedPreferenceUtil = new SharedPreferenceUtil(this);
+        mDeviceId = sharedPreferenceUtil.getDeviceId();
         final String photoPath = getIntent().getExtras().getString("path");
-        final Bitmap bitmap = ImageHelper.rotateImage(photoPath, TAG);
+        final Bitmap bitmap = ImageHelper.rotateImage(photoPath, TAG, sharedPreferenceUtil);
         trashImageView.setImageBitmap(bitmap);
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -246,8 +253,11 @@ public class AfterPhotoActivity extends AppCompatActivity implements
             ActivityCompat.requestPermissions(this,permissions,Constants.PERMISSIONS.RPS_REQUEST_CODE);
             return;
         } else {
-            final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-            mDeviceId = tm.getDeviceId();
+            if (mDeviceId == null) {
+                final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+                mDeviceId = tm.getDeviceId();
+                sharedPreferenceUtil.insertDeviceId(mDeviceId);
+            }
             sendPicBtn.setEnabled(true);
         }
     }
