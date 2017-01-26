@@ -137,7 +137,8 @@ public class AfterPhotoActivity extends AppCompatActivity implements
                         public void onStateChanged(final int id, final TransferState state) {
                             Log.d(TAG, "State: " + state.name());
                             if (state == TransferState.COMPLETED) {
-                                progressDialog.dismiss();
+                                progressDialog.setIndeterminate(true);
+                                progressDialog.setTitle("Saving...");
                                 final String fileS3Url = AWSHelper.createS3FileUrl(file.getName());
                                 Log.d(TAG, "s3 Url: " + fileS3Url);
                                 final MultipartBody.Part imagePart = MultipartBody.Part.createFormData("trashPhoto", fileS3Url);
@@ -155,6 +156,7 @@ public class AfterPhotoActivity extends AppCompatActivity implements
                                     public void onResponse(final Call<Void> call, final Response<Void> response) {
                                         Log.d(TAG, "Call Success!");
                                         Log.d(TAG, "Response message: " + response.message());
+                                        progressDialog.dismiss();
                                         final AlertDialog.Builder builder = new AlertDialog.Builder(AfterPhotoActivity.this);
                                         final AlertDialog dialog = builder.setTitle("Trash posted!").setPositiveButton("Okay", new DialogInterface.OnClickListener() {
                                             @Override
@@ -168,6 +170,7 @@ public class AfterPhotoActivity extends AppCompatActivity implements
                                     @Override
                                     public void onFailure(final Call<Void> call, final Throwable t) {
                                         Log.e(TAG, "Call failed: " + t.getMessage());
+                                        progressDialog.dismiss();
                                     }
                                 });
                             }
