@@ -4,6 +4,7 @@ package com.rutgerssustainability.android.rutgerssustainability.api;
 
 
 import com.rutgerssustainability.android.rutgerssustainability.pojos.TrashWrapper;
+import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 import com.squareup.okhttp.ResponseBody;
 
 import okhttp3.MultipartBody;
@@ -20,9 +21,9 @@ import retrofit2.http.Query;
  */
 public interface TrashService {
     @Multipart
-    @POST("/trash/postTrash")
+    @POST(Constants.API.POST_TRASH_ENDPOINT)
     Call<Void> postTrash(@Part MultipartBody.Part trashPhoto, @Part MultipartBody.Part userId, @Part MultipartBody.Part latitude, @Part MultipartBody.Part longitude, @Part MultipartBody.Part epoch, @Part MultipartBody.Part tags);
 
-    @GET("/trash/getTrashByUserId")
-    Call<TrashWrapper> getTrash(@Query("userId") String userId);
+    @GET(Constants.API.GET_TRASH_ENDPOINT)
+    Call<TrashWrapper> getTrash(@Query(Constants.API.USER_ID_KEY) String userId);
 }
