@@ -23,7 +23,7 @@ public class Constants {
         //endpoints
         public static final String POST_TRASH_ENDPOINT = "/trash/postTrash";
         public static final String GET_TRASH_ENDPOINT = "/trash/getTrashByUserId";
-        
+
         //keys
         public static final String PICTURE_KEY = "trashPhoto";
         public static final String USER_ID_KEY = "userId";

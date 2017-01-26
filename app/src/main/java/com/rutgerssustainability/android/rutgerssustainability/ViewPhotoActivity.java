@@ -17,6 +17,7 @@ import com.rutgerssustainability.android.rutgerssustainability.api.TrashService;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.Trash;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.TrashWrapper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
+import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -24,17 +25,27 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 public class ViewPhotoActivity extends AppCompatActivity {
+
+    //list related objects
     private ListView trashListView;
     private TrashListAdapter trashListAdapter;
+
+    //variables
     private String mDeviceId;
 
+    //constants
     private static final String TAG = "ViewPhotoActivity";
+
+    //utils
+    private SharedPreferenceUtil sharedPreferenceUtil;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_photo);
         trashListView = (ListView)findViewById(R.id.trash_list);
+        sharedPreferenceUtil = new SharedPreferenceUtil(this);
+        mDeviceId = sharedPreferenceUtil.getDeviceId();
         triggerList();
     }
 
@@ -62,7 +73,7 @@ public class ViewPhotoActivity extends AppCompatActivity {
         final Call<TrashWrapper> call = trashService.getTrash(mDeviceId);
         call.enqueue(new Callback<TrashWrapper>() {
             @Override
-            public void onResponse(Call<TrashWrapper> call, Response<TrashWrapper> response) {
+            public void onResponse(final Call<TrashWrapper> call, final Response<TrashWrapper> response) {
                 final TrashWrapper trashWrapper = response.body();
                 final Trash[] trash = trashWrapper.getTrash();
                 trashListAdapter = new TrashListAdapter(trash,ViewPhotoActivity.this);
@@ -70,7 +81,7 @@ public class ViewPhotoActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<TrashWrapper> call, Throwable t) {
+            public void onFailure(final Call<TrashWrapper> call, final Throwable t) {
                 Log.e(TAG,"Call error:" + t.getMessage());
             }
         });
@@ -87,8 +98,10 @@ public class ViewPhotoActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,permissions,Constants.PERMISSIONS.RPS_REQUEST_CODE);
             return;
         } else {
-            final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-            mDeviceId = tm.getDeviceId();
+            if (mDeviceId == null) {
+                final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+                mDeviceId = tm.getDeviceId();
+            }
             getTrashRequest();
         }
     }
