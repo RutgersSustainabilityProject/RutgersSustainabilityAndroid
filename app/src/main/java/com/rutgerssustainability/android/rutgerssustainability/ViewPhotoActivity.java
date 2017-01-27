@@ -14,10 +14,13 @@ import android.widget.ListView;
 import com.rutgerssustainability.android.rutgerssustainability.adapter.TrashListAdapter;
 import com.rutgerssustainability.android.rutgerssustainability.api.RestClient;
 import com.rutgerssustainability.android.rutgerssustainability.api.TrashService;
+import com.rutgerssustainability.android.rutgerssustainability.db.DataSource;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.Trash;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.TrashWrapper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -36,8 +39,9 @@ public class ViewPhotoActivity extends AppCompatActivity {
     //constants
     private static final String TAG = "ViewPhotoActivity";
 
-    //utils
+    //persistence
     private SharedPreferenceUtil sharedPreferenceUtil;
+    private DataSource dataSource;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -45,6 +49,7 @@ public class ViewPhotoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_photo);
         trashListView = (ListView)findViewById(R.id.trash_list);
         sharedPreferenceUtil = new SharedPreferenceUtil(this);
+        dataSource = new DataSource(this);
         mDeviceId = sharedPreferenceUtil.getDeviceId();
         triggerList();
     }
@@ -75,16 +80,34 @@ public class ViewPhotoActivity extends AppCompatActivity {
             @Override
             public void onResponse(final Call<TrashWrapper> call, final Response<TrashWrapper> response) {
                 final TrashWrapper trashWrapper = response.body();
-                final Trash[] trash = trashWrapper.getTrash();
-                trashListAdapter = new TrashListAdapter(trash,ViewPhotoActivity.this);
+                Trash[] trash = trashWrapper.getTrash();
+                if (trash == null || trash.length < 1) {
+                    trash = getTrashFromDB();
+                } else {
+                    for (final Trash trashObj : trash) {
+                        if (!dataSource.hasTrash(trashObj)) {
+                            dataSource.addTrash(trashObj);
+                        }
+                    }
+                }
+                trashListAdapter = new TrashListAdapter(trash, ViewPhotoActivity.this);
                 trashListView.setAdapter(trashListAdapter);
             }
 
             @Override
             public void onFailure(final Call<TrashWrapper> call, final Throwable t) {
-                Log.e(TAG,"Call error:" + t.getMessage());
+                Log.e(TAG, "Call error:" + t.getMessage());
+                final Trash[] trash = getTrashFromDB();
+                trashListAdapter = new TrashListAdapter(trash, ViewPhotoActivity.this);
+                trashListView.setAdapter(trashListAdapter);
             }
         });
+    }
+
+    private Trash[] getTrashFromDB() {
+        final List<Trash> trashList = dataSource.getAllTrash();
+        final Trash[] trashs = trashList.toArray(new Trash[trashList.size()]);
+        return trashs;
     }
 
     private boolean checkPermissionGranted(final int[] grantResults) {
