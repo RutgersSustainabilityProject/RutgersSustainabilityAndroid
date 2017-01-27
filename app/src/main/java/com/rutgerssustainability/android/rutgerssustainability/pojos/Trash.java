@@ -36,4 +36,8 @@ public class Trash {
         return this.tags;
     }
 
+    public String getUniqueId() {
+        return this.userId + this.epoch;
+    }
+
 }

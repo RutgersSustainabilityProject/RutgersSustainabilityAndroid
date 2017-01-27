@@ -33,4 +33,17 @@ public class Constants {
         public static final String TAGS_KEY = "tags";
     }
 
+    public static class DB {
+        //db generics
+        public static final String DB_NAME = "rusustainability.db";
+        public static final int DB_VERSION = 1;
+
+        //table names
+        public static final String TABLE_TRASH = "trash";
+
+        //column names
+        public static final String COLUMN_TRASH_ID = "trashId";
+        public static final String COLUMN_JSON = "json";
+    }
+
 }
