@@ -9,6 +9,8 @@ import com.rutgerssustainability.android.rutgerssustainability.pojos.Trash;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shreyashirday on 1/26/17.
@@ -41,14 +43,43 @@ public class DataSource {
         db.execSQL(insertCommand);
     }
 
-   public boolean hasTrash(final Trash trash) {
-       final String selectCommand = "SELECT * FROM " + Constants.DB.TABLE_TRASH +
+    public boolean hasTrash(final Trash trash) {
+        final String selectCommand = "SELECT * FROM " + Constants.DB.TABLE_TRASH +
                " WHERE " + Constants.DB.COLUMN_TRASH_ID + " = '" + trash.getUniqueId() + "'";
-       final Cursor cursor = db.rawQuery(selectCommand, null);
-       final boolean exists = cursor.moveToFirst();
-       cursor.close();
-       return exists;
-   }
+        final Cursor cursor = db.rawQuery(selectCommand, null);
+        final boolean exists = cursor.moveToFirst();
+        cursor.close();
+        return exists;
+    }
+
+    public Trash getTrash(final String trashId) {
+        final String selectCommand = "SELECT * FROM " + Constants.DB.TABLE_TRASH +
+                " WHERE " + Constants.DB.COLUMN_TRASH_ID + " = '" + trashId + "'";
+        final Cursor cursor = db.rawQuery(selectCommand,null);
+        if (cursor.moveToFirst()) {
+            final String json = cursor.getString(1);
+            final Trash trash = gson.fromJson(json, Trash.class);
+            cursor.close();
+            return trash;
+        }
+        return null;
+    }
+
+    public List<Trash> getAllTrash() {
+        final String selectCommand = "SELECT * FROM " + Constants.DB.TABLE_TRASH;
+        final Cursor cursor = db.rawQuery(selectCommand, null);
+        final List<Trash> trashList = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            while (!cursor.isAfterLast()) {
+                final String json = cursor.getString(1);
+                final Trash trash = gson.fromJson(json,Trash.class);
+                trashList.add(trash);
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+        return trashList;
+    }
 
    public void deleteTrashTable() {
        db.delete(Constants.DB.TABLE_TRASH,null,null);
