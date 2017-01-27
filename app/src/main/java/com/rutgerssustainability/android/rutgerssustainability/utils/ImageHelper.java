@@ -1,7 +1,5 @@
 package com.rutgerssustainability.android.rutgerssustainability.utils;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -16,7 +14,7 @@ public class ImageHelper {
     public static int getDegreesToRotate(final String photoPath, final String TAG) {
         try {
             final ExifInterface exif = new ExifInterface(photoPath);
-            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
+            final int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
             if (orientation == 6) {
                 return 90;
             } else if (orientation == 3) {
@@ -24,7 +22,7 @@ public class ImageHelper {
             } else if (orientation == 8) {
                 return 270;
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             Log.e(TAG, e.getMessage());
         }
         return 0;
@@ -33,7 +31,7 @@ public class ImageHelper {
     public static Bitmap rotateImage(final String photoPath, final String TAG, final SharedPreferenceUtil sharedPreferenceUtil) {
         final BitmapFactory.Options options = new BitmapFactory.Options();
         Bitmap bitmap = BitmapFactory.decodeFile(photoPath, options);
-        int degreesToRotate = getDegreesToRotate(photoPath, TAG);
+        final int degreesToRotate = getDegreesToRotate(photoPath, TAG);
         sharedPreferenceUtil.insertOrientationForImage(photoPath, degreesToRotate);
         if (degreesToRotate != 0) {
             final Matrix matrix = new Matrix();
