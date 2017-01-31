@@ -5,11 +5,9 @@ package com.rutgerssustainability.android.rutgerssustainability.api;
 
 import com.rutgerssustainability.android.rutgerssustainability.pojos.TrashWrapper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
-import com.squareup.okhttp.ResponseBody;
 
 import okhttp3.MultipartBody;
 import retrofit2.Call;
-import retrofit2.Response;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;

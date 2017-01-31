@@ -4,8 +4,6 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -33,6 +31,8 @@ import com.google.android.gms.location.LocationServices;
 import com.rutgerssustainability.android.rutgerssustainability.api.RestClient;
 import com.rutgerssustainability.android.rutgerssustainability.api.TrashService;
 import com.rutgerssustainability.android.rutgerssustainability.aws.AWSHelper;
+import com.rutgerssustainability.android.rutgerssustainability.utils.ActivityHelper;
+import com.rutgerssustainability.android.rutgerssustainability.utils.AlertDialogHelper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 import com.rutgerssustainability.android.rutgerssustainability.utils.ImageHelper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
@@ -99,7 +99,7 @@ public class AfterPhotoActivity extends AppCompatActivity implements
         cancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                leave();
+                ActivityHelper.leave(AfterPhotoActivity.this);
             }
         });
     }
@@ -157,13 +157,7 @@ public class AfterPhotoActivity extends AppCompatActivity implements
                                         Log.d(TAG, "Call Success!");
                                         Log.d(TAG, "Response message: " + response.message());
                                         progressDialog.dismiss();
-                                        final AlertDialog.Builder builder = new AlertDialog.Builder(AfterPhotoActivity.this);
-                                        final AlertDialog dialog = builder.setTitle("Trash posted!").setPositiveButton("Okay", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                leave();
-                                            }
-                                        }).create();
+                                        final AlertDialog dialog = AlertDialogHelper.createAlertDialog(AfterPhotoActivity.this,"Trash posted!",null,true);
                                         dialog.show();
                                     }
 
@@ -200,12 +194,6 @@ public class AfterPhotoActivity extends AppCompatActivity implements
             return true;
         }
 
-    }
-
-    private void leave() {
-        final Intent back = new Intent(AfterPhotoActivity.this, MainActivity.class);
-        finish();
-        startActivity(back);
     }
 
     @Override

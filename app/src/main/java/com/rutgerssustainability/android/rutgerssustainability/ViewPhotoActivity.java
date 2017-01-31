@@ -1,6 +1,7 @@
 package com.rutgerssustainability.android.rutgerssustainability;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
@@ -8,7 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.BaseAdapter;
 import android.widget.ListView;
 
 import com.rutgerssustainability.android.rutgerssustainability.adapter.TrashListAdapter;
@@ -17,6 +17,7 @@ import com.rutgerssustainability.android.rutgerssustainability.api.TrashService;
 import com.rutgerssustainability.android.rutgerssustainability.db.DataSource;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.Trash;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.TrashWrapper;
+import com.rutgerssustainability.android.rutgerssustainability.utils.AlertDialogHelper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
 
@@ -25,7 +26,6 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class ViewPhotoActivity extends AppCompatActivity {
 
@@ -98,8 +98,13 @@ public class ViewPhotoActivity extends AppCompatActivity {
             public void onFailure(final Call<TrashWrapper> call, final Throwable t) {
                 Log.e(TAG, "Call error:" + t.getMessage());
                 final Trash[] trash = getTrashFromDB();
-                trashListAdapter = new TrashListAdapter(trash, ViewPhotoActivity.this);
-                trashListView.setAdapter(trashListAdapter);
+                if (trash != null) {
+                    trashListAdapter = new TrashListAdapter(trash, ViewPhotoActivity.this);
+                    trashListView.setAdapter(trashListAdapter);
+                } else {
+                    final AlertDialog dialog = AlertDialogHelper.createAlertDialog(ViewPhotoActivity.this, "Oops!", "There was an error: " + t.getMessage(), false);
+                    dialog.show();
+                }
             }
         });
     }
