@@ -10,6 +10,7 @@ import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -63,6 +64,26 @@ public class DataSource {
             return trash;
         }
         return null;
+    }
+
+    public boolean doesOldTrashExist(final Trash[] trashs) {
+        final String selectCommand = "SELECT * FROM " + Constants.DB.TABLE_TRASH;
+        final Cursor cursor = db.rawQuery(selectCommand, null);
+        final List<String> trashIdList = new ArrayList<>();
+        for (Trash t : trashs) {
+            trashIdList.add(t.getUniqueId());
+        }
+        if (cursor.moveToFirst()) {
+            while (!cursor.isAfterLast()) {
+                final String trashId = cursor.getString(0);
+                if (!trashIdList.contains(trashId)) {
+                    cursor.close();
+                    return true;
+                }
+            }
+        }
+        cursor.close();
+        return false;
     }
 
     public List<Trash> getAllTrash() {

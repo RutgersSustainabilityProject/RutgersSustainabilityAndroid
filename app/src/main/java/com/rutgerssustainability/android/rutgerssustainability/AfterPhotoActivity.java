@@ -31,6 +31,9 @@ import com.google.android.gms.location.LocationServices;
 import com.rutgerssustainability.android.rutgerssustainability.api.RestClient;
 import com.rutgerssustainability.android.rutgerssustainability.api.TrashService;
 import com.rutgerssustainability.android.rutgerssustainability.aws.AWSHelper;
+import com.rutgerssustainability.android.rutgerssustainability.db.DataSource;
+import com.rutgerssustainability.android.rutgerssustainability.pojos.Trash;
+import com.rutgerssustainability.android.rutgerssustainability.pojos.TrashWrapper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.ActivityHelper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.AlertDialogHelper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
@@ -66,6 +69,7 @@ public class AfterPhotoActivity extends AppCompatActivity implements
 
     //utils
     private SharedPreferenceUtil sharedPreferenceUtil;
+    private DataSource dataSource;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -76,6 +80,7 @@ public class AfterPhotoActivity extends AppCompatActivity implements
         cancelBtn = (Button) findViewById(R.id.cancel_btn);
         tagsField = (EditText) findViewById(R.id.tags_field);
         sharedPreferenceUtil = new SharedPreferenceUtil(this);
+        dataSource = new DataSource(this);
         mDeviceId = sharedPreferenceUtil.getDeviceId();
         final String photoPath = getIntent().getExtras().getString("path");
         final Bitmap bitmap = ImageHelper.rotateImage(photoPath, TAG, sharedPreferenceUtil);
@@ -150,19 +155,25 @@ public class AfterPhotoActivity extends AppCompatActivity implements
                                 final MultipartBody.Part tagsPart = MultipartBody.Part.createFormData(Constants.API.TAGS_KEY, newTags);
                                 final RestClient restClient = new RestClient();
                                 final TrashService trashService = restClient.getTrashService();
-                                final Call<Void> call = trashService.postTrash(imagePart, userIdPart, latitudePart, longitudePart, epochPart, tagsPart);
-                                call.enqueue(new Callback<Void>() {
+                                final Call<TrashWrapper> call = trashService.postTrash(imagePart, userIdPart, latitudePart, longitudePart, epochPart, tagsPart);
+                                call.enqueue(new Callback<TrashWrapper>() {
                                     @Override
-                                    public void onResponse(final Call<Void> call, final Response<Void> response) {
+                                    public void onResponse(final Call<TrashWrapper> call, final Response<TrashWrapper> response) {
                                         Log.d(TAG, "Call Success!");
                                         Log.d(TAG, "Response message: " + response.message());
                                         progressDialog.dismiss();
+                                        final TrashWrapper trashWrapper = response.body();
+                                        final Trash[] trashArray = trashWrapper.getTrash();
+                                        final Trash trash = trashArray[0];
+                                        if (!dataSource.hasTrash(trash)) {
+                                            dataSource.addTrash(trash);
+                                        }
                                         final AlertDialog dialog = AlertDialogHelper.createAlertDialog(AfterPhotoActivity.this,"Trash posted!",null,true);
                                         dialog.show();
                                     }
 
                                     @Override
-                                    public void onFailure(final Call<Void> call, final Throwable t) {
+                                    public void onFailure(final Call<TrashWrapper> call, final Throwable t) {
                                         Log.e(TAG, "Call failed: " + t.getMessage());
                                         progressDialog.dismiss();
                                     }

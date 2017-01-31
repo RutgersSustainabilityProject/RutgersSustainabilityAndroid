@@ -84,14 +84,24 @@ public class ViewPhotoActivity extends AppCompatActivity {
                 if (trash == null || trash.length < 1) {
                     trash = getTrashFromDB();
                 } else {
+                    boolean deleted = false;
+                    if (dataSource.doesOldTrashExist(trash)) {
+                        dataSource.deleteTrashTable();
+                        deleted = true;
+                    }
                     for (final Trash trashObj : trash) {
-                        if (!dataSource.hasTrash(trashObj)) {
+                        if (deleted || !dataSource.hasTrash(trashObj)) {
                             dataSource.addTrash(trashObj);
                         }
                     }
                 }
-                trashListAdapter = new TrashListAdapter(trash, ViewPhotoActivity.this);
-                trashListView.setAdapter(trashListAdapter);
+                if (trash != null) {
+                    trashListAdapter = new TrashListAdapter(trash, ViewPhotoActivity.this);
+                    trashListView.setAdapter(trashListAdapter);
+                } else {
+                    createErrorDialog(null);
+                }
+
             }
 
             @Override
@@ -102,11 +112,24 @@ public class ViewPhotoActivity extends AppCompatActivity {
                     trashListAdapter = new TrashListAdapter(trash, ViewPhotoActivity.this);
                     trashListView.setAdapter(trashListAdapter);
                 } else {
-                    final AlertDialog dialog = AlertDialogHelper.createAlertDialog(ViewPhotoActivity.this, "Oops!", "There was an error: " + t.getMessage(), false);
-                    dialog.show();
+                    createErrorDialog(t);
                 }
             }
         });
+    }
+
+    private void createErrorDialog(final Throwable t) {
+        final String dialogTitle = "Oops!";
+        final StringBuilder errorMsgBuilder = new StringBuilder();
+        errorMsgBuilder.append("There was an error");
+        if (t == null) {
+            errorMsgBuilder.append("!");
+        } else {
+            errorMsgBuilder.append(": " + t.getMessage());
+        }
+        final String errorMsg = errorMsgBuilder.toString();
+        final AlertDialog dialog = AlertDialogHelper.createAlertDialog(ViewPhotoActivity.this, dialogTitle, errorMsg, false);
+        dialog.show();
     }
 
     private Trash[] getTrashFromDB() {
