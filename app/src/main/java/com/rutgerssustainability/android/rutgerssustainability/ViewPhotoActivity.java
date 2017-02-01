@@ -21,6 +21,7 @@ import com.rutgerssustainability.android.rutgerssustainability.utils.AlertDialog
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import retrofit2.Call;
@@ -75,30 +76,41 @@ public class ViewPhotoActivity extends AppCompatActivity {
     private void getTrashRequest() {
         final RestClient restClient = new RestClient();
         final TrashService trashService =  restClient.getTrashService();
+        Log.d(TAG,"device id = " + mDeviceId);
         final Call<TrashWrapper> call = trashService.getTrash(mDeviceId);
+        Log.d(TAG,"enqueing call");
         call.enqueue(new Callback<TrashWrapper>() {
             @Override
             public void onResponse(final Call<TrashWrapper> call, final Response<TrashWrapper> response) {
+                Log.d(TAG,"onResponse called");
                 final TrashWrapper trashWrapper = response.body();
                 Trash[] trash = trashWrapper.getTrash();
+                Log.d(TAG,"entering if statement");
                 if (trash == null || trash.length < 1) {
+                    Log.d(TAG,"no trash received from server, using local data");
                     trash = getTrashFromDB();
                 } else {
-                    boolean deleted = false;
-                    if (dataSource.doesOldTrashExist(trash)) {
+                    Log.d(TAG,"trash received from server");
+                    try {
+                        Log.d(TAG,"dataSource opening");
+                        dataSource.open();
+                        Log.d(TAG,"dataSource opened");
                         dataSource.deleteTrashTable();
-                        deleted = true;
-                    }
-                    for (final Trash trashObj : trash) {
-                        if (deleted || !dataSource.hasTrash(trashObj)) {
+                        Log.d(TAG,"adding objects to local data");
+                        for (final Trash trashObj : trash) {
                             dataSource.addTrash(trashObj);
                         }
+                        dataSource.close();
+                    } catch (final SQLException e) {
+                        Log.e(TAG, e.getMessage());
                     }
                 }
                 if (trash != null) {
+                    Log.d(TAG,"Trash is NOT null");
                     trashListAdapter = new TrashListAdapter(trash, ViewPhotoActivity.this);
                     trashListView.setAdapter(trashListAdapter);
                 } else {
+                    Log.e(TAG,"Trash is null");
                     createErrorDialog(null);
                 }
 

@@ -41,6 +41,7 @@ import com.rutgerssustainability.android.rutgerssustainability.utils.ImageHelper
 import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
 
 import java.io.File;
+import java.sql.SQLException;
 
 
 import okhttp3.MultipartBody;
@@ -165,8 +166,14 @@ public class AfterPhotoActivity extends AppCompatActivity implements
                                         final TrashWrapper trashWrapper = response.body();
                                         final Trash[] trashArray = trashWrapper.getTrash();
                                         final Trash trash = trashArray[0];
-                                        if (!dataSource.hasTrash(trash)) {
-                                            dataSource.addTrash(trash);
+                                        try {
+                                            dataSource.open();
+                                            if (!dataSource.hasTrash(trash)) {
+                                                dataSource.addTrash(trash);
+                                            }
+                                            dataSource.close();
+                                        } catch (final SQLException e) {
+                                            Log.e(TAG,e.getMessage());
                                         }
                                         final AlertDialog dialog = AlertDialogHelper.createAlertDialog(AfterPhotoActivity.this,"Trash posted!",null,true);
                                         dialog.show();
