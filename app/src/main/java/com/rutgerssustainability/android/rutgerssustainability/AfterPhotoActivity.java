@@ -238,7 +238,11 @@ public class AfterPhotoActivity extends AppCompatActivity implements
                 break;
             case Constants.PERMISSIONS.RPS_REQUEST_CODE:
                 if (granted) {
-                    getDeviceId();
+                    final boolean deviceIdExists = ActivityHelper.getDeviceId(this);
+                    if (deviceIdExists) {
+                        mDeviceId = sharedPreferenceUtil.getDeviceId();
+                        sendPicBtn.setEnabled(true);
+                    }
                 }
                 break;
             default: break;
@@ -256,21 +260,6 @@ public class AfterPhotoActivity extends AppCompatActivity implements
         getLastLocation();
     }
 
-    private void getDeviceId() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            final String[] permissions = {Manifest.permission.READ_PHONE_STATE};
-            ActivityCompat.requestPermissions(this,permissions,Constants.PERMISSIONS.RPS_REQUEST_CODE);
-            return;
-        } else {
-            if (mDeviceId == null) {
-                final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-                mDeviceId = tm.getDeviceId();
-                sharedPreferenceUtil.insertDeviceId(mDeviceId);
-            }
-            sendPicBtn.setEnabled(true);
-        }
-    }
-
     private void getLastLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             final String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
@@ -283,7 +272,11 @@ public class AfterPhotoActivity extends AppCompatActivity implements
                 if (mDeviceId != null) {
                     sendPicBtn.setEnabled(true);
                 } else {
-                    getDeviceId();
+                    final boolean deviceIdExists = ActivityHelper.getDeviceId(this);
+                    if (deviceIdExists) {
+                        mDeviceId = sharedPreferenceUtil.getDeviceId();
+                        sendPicBtn.setEnabled(true);
+                    }
                 }
             }
         }

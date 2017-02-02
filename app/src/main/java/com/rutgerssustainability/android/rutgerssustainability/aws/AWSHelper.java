@@ -23,7 +23,7 @@ public class AWSHelper {
             // Initialize the Amazon Cognito credentials provider
             credentialsProvider = new CognitoCachingCredentialsProvider(
                     context,
-                    "us-east-1:36554b1f-7640-4a2f-ab12-d8567abbe228", // Identity Pool ID - change last digit to 8
+                    "us-east-1:36554b1f-7640-4a2f-ab12-d8567abbe228", // Identity Pool ID
                     Regions.US_EAST_1 // Region
             );
         }

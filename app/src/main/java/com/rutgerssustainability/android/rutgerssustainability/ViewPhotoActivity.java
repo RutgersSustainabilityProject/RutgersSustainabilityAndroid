@@ -1,13 +1,9 @@
 package com.rutgerssustainability.android.rutgerssustainability;
 
-import android.Manifest;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.ListView;
 
@@ -17,6 +13,7 @@ import com.rutgerssustainability.android.rutgerssustainability.api.TrashService;
 import com.rutgerssustainability.android.rutgerssustainability.db.DataSource;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.Trash;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.TrashWrapper;
+import com.rutgerssustainability.android.rutgerssustainability.utils.ActivityHelper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.AlertDialogHelper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
@@ -61,7 +58,11 @@ public class ViewPhotoActivity extends AppCompatActivity {
         switch (requestCode){
             case Constants.PERMISSIONS.RPS_REQUEST_CODE:
                 if (granted) {
-                    getDeviceId();
+                    final boolean deviceIdExists = ActivityHelper.getDeviceId(this);
+                    if (deviceIdExists) {
+                        mDeviceId = sharedPreferenceUtil.getDeviceId();
+                        getTrashRequest();
+                    }
                 }
                 break;
             default: break;
@@ -70,7 +71,11 @@ public class ViewPhotoActivity extends AppCompatActivity {
     }
 
     private void triggerList() {
-        getDeviceId();
+        final boolean deviceIdExists = ActivityHelper.getDeviceId(this);
+        if (deviceIdExists) {
+            mDeviceId = sharedPreferenceUtil.getDeviceId();
+            getTrashRequest();
+        }
     }
 
     private void getTrashRequest() {
@@ -82,21 +87,21 @@ public class ViewPhotoActivity extends AppCompatActivity {
         call.enqueue(new Callback<TrashWrapper>() {
             @Override
             public void onResponse(final Call<TrashWrapper> call, final Response<TrashWrapper> response) {
-                Log.d(TAG,"onResponse called");
+                Log.d(TAG, "onResponse called");
                 final TrashWrapper trashWrapper = response.body();
                 Trash[] trash = trashWrapper.getTrash();
-                Log.d(TAG,"entering if statement");
+                Log.d(TAG, "entering if statement");
                 if (trash == null || trash.length < 1) {
-                    Log.d(TAG,"no trash received from server, using local data");
+                    Log.d(TAG, "no trash received from server, using local data");
                     trash = getTrashFromDB();
                 } else {
-                    Log.d(TAG,"trash received from server");
+                    Log.d(TAG, "trash received from server");
                     try {
-                        Log.d(TAG,"dataSource opening");
+                        Log.d(TAG, "dataSource opening");
                         dataSource.open();
-                        Log.d(TAG,"dataSource opened");
+                        Log.d(TAG, "dataSource opened");
                         dataSource.deleteTrashTable();
-                        Log.d(TAG,"adding objects to local data");
+                        Log.d(TAG, "adding objects to local data");
                         for (final Trash trashObj : trash) {
                             dataSource.addTrash(trashObj);
                         }
@@ -106,11 +111,11 @@ public class ViewPhotoActivity extends AppCompatActivity {
                     }
                 }
                 if (trash != null) {
-                    Log.d(TAG,"Trash is NOT null");
+                    Log.d(TAG, "Trash is NOT null");
                     trashListAdapter = new TrashListAdapter(trash, ViewPhotoActivity.this);
                     trashListView.setAdapter(trashListAdapter);
                 } else {
-                    Log.e(TAG,"Trash is null");
+                    Log.e(TAG, "Trash is null");
                     createErrorDialog(null);
                 }
 
@@ -155,17 +160,4 @@ public class ViewPhotoActivity extends AppCompatActivity {
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
     }
 
-    private void getDeviceId() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            final String[] permissions = {Manifest.permission.READ_PHONE_STATE};
-            ActivityCompat.requestPermissions(this,permissions,Constants.PERMISSIONS.RPS_REQUEST_CODE);
-            return;
-        } else {
-            if (mDeviceId == null) {
-                final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-                mDeviceId = tm.getDeviceId();
-            }
-            getTrashRequest();
-        }
-    }
 }
