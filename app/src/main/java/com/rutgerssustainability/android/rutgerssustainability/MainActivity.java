@@ -11,7 +11,14 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
+import android.widget.TextView;
 
+
+import com.rutgerssustainability.android.rutgerssustainability.utils.ActivityHelper;
+import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
+import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,9 +29,13 @@ public class MainActivity extends AppCompatActivity {
 
     private Button takePicBtn;
     private Button viewPicsBtn;
+    private Switch deviceIdSwitch;
+    private TextView deviceIdTxt;
 
     private static final String TAG = "MainActivity";
     private final static int REQUEST_TAKE_PHOTO = 1;
+
+    private SharedPreferenceUtil sharedPreferenceUtil;
 
     String mCurrentPhotoPath = null;
 
@@ -34,7 +45,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         takePicBtn = (Button)findViewById(R.id.take_pic_btn);
         viewPicsBtn = (Button)findViewById(R.id.view_pics_btn);
-
+        deviceIdSwitch = (Switch)findViewById(R.id.device_id_switch);
+        deviceIdTxt = (TextView)findViewById(R.id.device_id_txt);
+        sharedPreferenceUtil = new SharedPreferenceUtil(this);
         takePicBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -45,6 +58,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 executeViewPicturesIntent();
+            }
+        });
+        deviceIdSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    final boolean deviceIdExists = ActivityHelper.getDeviceId(MainActivity.this);
+                    if (deviceIdExists) {
+                        final String deviceId = sharedPreferenceUtil.getDeviceId();
+                        deviceIdTxt.setText(deviceId);
+                    }
+                } else {
+                    deviceIdTxt.setText("");
+                }
             }
         });
     }
@@ -59,6 +86,24 @@ public class MainActivity extends AppCompatActivity {
             startActivity(afterPhoto);
         }
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults) {
+        final boolean granted = ActivityHelper.checkPermissionGranted(grantResults);
+        switch (requestCode){
+            case Constants.PERMISSIONS.RPS_REQUEST_CODE:
+                if (granted) {
+                    final boolean deviceIdExists = ActivityHelper.getDeviceId(this);
+                    if (deviceIdExists) {
+                        final String deviceId = sharedPreferenceUtil.getDeviceId();
+                        deviceIdTxt.setText(deviceId);
+                    }
+                }
+                break;
+            default: break;
+        }
+        return;
     }
 
     private void executeTakePictureIntent(){

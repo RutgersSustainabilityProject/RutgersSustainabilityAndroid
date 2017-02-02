@@ -229,7 +229,7 @@ public class AfterPhotoActivity extends AppCompatActivity implements
 
     @Override
     public void onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults) {
-        final boolean granted = checkPermissionGranted(grantResults);
+        final boolean granted = ActivityHelper.checkPermissionGranted(grantResults);
         switch (requestCode){
             case Constants.PERMISSIONS.LOCATION_REQUEST_CODE:
                 if (granted) {
@@ -248,11 +248,6 @@ public class AfterPhotoActivity extends AppCompatActivity implements
             default: break;
         }
         return;
-    }
-
-    private boolean checkPermissionGranted(final int[] grantResults) {
-        return grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override

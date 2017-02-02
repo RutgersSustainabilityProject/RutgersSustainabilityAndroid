@@ -54,7 +54,7 @@ public class ViewPhotoActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults) {
-        final boolean granted = checkPermissionGranted(grantResults);
+        final boolean granted = ActivityHelper.checkPermissionGranted(grantResults);
         switch (requestCode){
             case Constants.PERMISSIONS.RPS_REQUEST_CODE:
                 if (granted) {
@@ -155,9 +155,6 @@ public class ViewPhotoActivity extends AppCompatActivity {
         return trashs;
     }
 
-    private boolean checkPermissionGranted(final int[] grantResults) {
-        return grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED;
-    }
+
 
 }
