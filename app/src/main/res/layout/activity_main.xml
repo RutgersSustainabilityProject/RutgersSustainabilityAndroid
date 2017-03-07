@@ -13,6 +13,12 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
+        >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="75dp"
@@ -35,6 +41,38 @@
             />
 
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="30dp"
+        >
 
+        <Button
+            android:id="@+id/take_audio_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/take_audio_title"
+            android:layout_marginLeft="120dp"
+            />
+
+    </LinearLayout>
+    </LinearLayout>
+
+    <Switch
+        android:id="@+id/device_id_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="@string/device_id_switch_title"
+        android:layout_gravity="center_horizontal"
+        />
+
+    <TextView
+        android:id="@+id/device_id_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        />
 
 </LinearLayout>

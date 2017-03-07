@@ -13,6 +13,7 @@ public class Constants {
     public static class PERMISSIONS {
         public static final int LOCATION_REQUEST_CODE = 1;
         public static final int RPS_REQUEST_CODE = 2;
+        public static final int AUDIO_REQUEST_CODE = 200;
     }
 
     public static class API {

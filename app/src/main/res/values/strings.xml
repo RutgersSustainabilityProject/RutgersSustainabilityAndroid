@@ -5,4 +5,10 @@
     <string name="send_pic_title">Send Picture</string>
     <string name="tags_hint">Tags (ex: bottle, wrapper, food)</string>
     <string name="cancel_btn_title">Cancel</string>
+    <string name="device_id_switch_title">See Device Id</string>
+    <string name="take_audio_title">Take Audio</string>
+    <string name="start_record_title">Start Recording</string>
+    <string name="stop_record_title">Stop Recording</string>
+    <string name="start_playing_title">Start Playing</string>
+    <string name="stop_playing_title">Stop Playing</string>
 </resources>

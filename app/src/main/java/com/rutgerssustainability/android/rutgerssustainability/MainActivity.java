@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button takePicBtn;
     private Button viewPicsBtn;
+    private Button takeAudioBtn;
     private Switch deviceIdSwitch;
     private TextView deviceIdTxt;
 
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         takePicBtn = (Button)findViewById(R.id.take_pic_btn);
         viewPicsBtn = (Button)findViewById(R.id.view_pics_btn);
+        takeAudioBtn = (Button)findViewById(R.id.take_audio_btn);
         deviceIdSwitch = (Switch)findViewById(R.id.device_id_switch);
         deviceIdTxt = (TextView)findViewById(R.id.device_id_txt);
         sharedPreferenceUtil = new SharedPreferenceUtil(this);
@@ -58,6 +60,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 executeViewPicturesIntent();
+            }
+        });
+        takeAudioBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                executeTakeAudioIntent();
             }
         });
         deviceIdSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -127,6 +135,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
+    }
+
+    private void executeTakeAudioIntent() {
+        final Intent intent = new Intent(MainActivity.this, AudioRecorderActivity.class);
+        startActivity(intent);
     }
 
     private void executeViewPicturesIntent() {
