@@ -177,6 +177,7 @@ public class AudioRecorderActivity extends AppCompatActivity {
             startRecordingBtn.setText(getString(R.string.start_record_title));
             handler.removeCallbacks(updater);
             avgDecibel = totalDecibels / decibleMeasureCount;
+            avgDecibel = Math.abs(avgDecibel);
             decibelValueTxt.setText("Average Decibel Value: " + avgDecibel + " dB");
         }
     }
@@ -189,7 +190,7 @@ public class AudioRecorderActivity extends AppCompatActivity {
                 mediaPlayer.prepare();
                 mediaPlayer.start();
                 isPlaying = true;
-                startPlayingBtn.setText(getString(R.string.start_playing_title));
+                startPlayingBtn.setText(getString(R.string.stop_playing_title));
             } else {
                 Toast.makeText(this,"No recording available!",Toast.LENGTH_SHORT).show();
             }
@@ -204,7 +205,7 @@ public class AudioRecorderActivity extends AppCompatActivity {
             mediaPlayer.release();
             mediaPlayer = null;
             isPlaying = false;
-            startPlayingBtn.setText(getString(R.string.stop_playing_title));
+            startPlayingBtn.setText(getString(R.string.start_playing_title));
         }
     }
 
@@ -221,6 +222,8 @@ public class AudioRecorderActivity extends AppCompatActivity {
         if (mediaRecorder != null) {
             totalDecibels += noiseHelper.getDecibels(mediaRecorder, REF_AMPLITUDE);
             decibleMeasureCount++;
+            Log.d(TAG,"total decibels = " + totalDecibels);
+            Log.d(TAG, "measurement count = " + decibleMeasureCount);
         }
     }
 

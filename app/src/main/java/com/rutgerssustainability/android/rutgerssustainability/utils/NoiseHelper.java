@@ -1,6 +1,7 @@
 package com.rutgerssustainability.android.rutgerssustainability.utils;
 
 import android.media.MediaRecorder;
+import android.util.Log;
 
 /**
  * Created by shreyashirday on 3/9/17.
@@ -23,8 +24,12 @@ public class NoiseHelper {
 
     private double getAmpltiudeEMA(final MediaRecorder mediaRecorder) {
         final double amp = getAmplitude(mediaRecorder);
-        mEma = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEma;
-        return mEma;
+        if (amp != 0) {
+            mEma = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEma;
+            Log.d("NoiseHelper", "mEma =" + mEma);
+            return mEma;
+        }
+        return 0.1;
     }
 
 }
