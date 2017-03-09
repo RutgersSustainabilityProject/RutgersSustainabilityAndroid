@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 
 import com.rutgerssustainability.android.rutgerssustainability.utils.ActivityHelper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
+import com.rutgerssustainability.android.rutgerssustainability.utils.NoiseHelper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.SharedPreferenceUtil;
 
 import java.io.IOException;
@@ -28,11 +30,13 @@ public class AudioRecorderActivity extends AppCompatActivity {
     private static final String TAG = "AudioRecorderActivity";
     private static final String RECORDING = "Recording";
     private static final String NOT_RECORDING = "Not Recording";
+    private static final int REF_AMPLITUDE = 32767;
 
     //UI
     private Button startRecordingBtn;
     private Button startPlayingBtn;
     private TextView recordingStatusTxt;
+    private TextView decibelValueTxt;
 
     //media objects
     private MediaRecorder mediaRecorder = null;
@@ -46,6 +50,23 @@ public class AudioRecorderActivity extends AppCompatActivity {
     private String fileName = null;
     private boolean isRecording = false;
     private boolean isPlaying = false;
+    private double decibleMeasureCount = 0.0;
+    private double totalDecibels = 0.0;
+    private double avgDecibel = 0.0;
+
+    //thread stuff for measuring db
+    final Handler handler = new Handler();
+    final NoiseHelper noiseHelper = new NoiseHelper();
+    final Runnable updater = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                getDecibelsFromRecording();
+            } finally {
+                handler.postDelayed(updater, 500);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +77,7 @@ public class AudioRecorderActivity extends AppCompatActivity {
         recordingStatusTxt = (TextView)findViewById(R.id.recording_status_txt);
         recordingStatusTxt.setTextColor(Color.RED);
         recordingStatusTxt.setText(NOT_RECORDING);
+        decibelValueTxt = (TextView)findViewById(R.id.decibel_value_txt);
         sharedPreferenceUtil = new SharedPreferenceUtil(this);
         final boolean hasDeviceId = ActivityHelper.getDeviceId(this);
         final boolean hasAudioPermission = getAudioPermission();
@@ -84,6 +106,7 @@ public class AudioRecorderActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     @Override
@@ -138,6 +161,9 @@ public class AudioRecorderActivity extends AppCompatActivity {
         recordingStatusTxt.setText(RECORDING);
         isRecording = true;
         startRecordingBtn.setText(getString(R.string.stop_record_title));
+        decibelValueTxt.setText("");
+        avgDecibel = 0.0;
+        updater.run();
     }
 
     private void stopRecording() {
@@ -149,6 +175,9 @@ public class AudioRecorderActivity extends AppCompatActivity {
             recordingStatusTxt.setText(NOT_RECORDING);
             isRecording = false;
             startRecordingBtn.setText(getString(R.string.start_record_title));
+            handler.removeCallbacks(updater);
+            avgDecibel = totalDecibels / decibleMeasureCount;
+            decibelValueTxt.setText("Average Decibel Value: " + avgDecibel + " dB");
         }
     }
 
@@ -182,10 +211,17 @@ public class AudioRecorderActivity extends AppCompatActivity {
     private boolean getAudioPermission() {
         if (ActivityCompat.checkSelfPermission(AudioRecorderActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             final String[] permissions = {Manifest.permission.RECORD_AUDIO};
-            ActivityCompat.requestPermissions(AudioRecorderActivity.this,permissions, Constants.PERMISSIONS.AUDIO_REQUEST_CODE);
+            ActivityCompat.requestPermissions(AudioRecorderActivity.this, permissions, Constants.PERMISSIONS.AUDIO_REQUEST_CODE);
             return false;
         }
         return true;
+    }
+
+    private void getDecibelsFromRecording() {
+        if (mediaRecorder != null) {
+            totalDecibels += noiseHelper.getDecibels(mediaRecorder, REF_AMPLITUDE);
+            decibleMeasureCount++;
+        }
     }
 
 }
