@@ -1,6 +1,6 @@
 package com.rutgerssustainability.android.rutgerssustainability.api;
 
-import com.rutgerssustainability.android.rutgerssustainability.pojos.TrashWrapper;
+import com.rutgerssustainability.android.rutgerssustainability.pojos.NoiseWrapper;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 
 import okhttp3.MultipartBody;
@@ -17,8 +17,8 @@ import retrofit2.http.Query;
 public interface NoiseService {
     @Multipart
     @POST(Constants.API.POST_NOISE_ENDPOINT)
-    Call<TrashWrapper> postNoise(@Part MultipartBody.Part audioUrl, @Part MultipartBody.Part userId, @Part MultipartBody.Part latitude, @Part MultipartBody.Part longitude, @Part MultipartBody.Part decibels, @Part MultipartBody.Part epoch, @Part MultipartBody.Part tags);
+    Call<NoiseWrapper> postNoise(@Part MultipartBody.Part audioUrl, @Part MultipartBody.Part userId, @Part MultipartBody.Part latitude, @Part MultipartBody.Part longitude, @Part MultipartBody.Part decibels, @Part MultipartBody.Part epoch, @Part MultipartBody.Part tags);
 
     @GET(Constants.API.GET_NOISE_ENDPOINT)
-    Call<TrashWrapper> getNoise(@Query(Constants.API.USER_ID_KEY) String userId);
+    Call<NoiseWrapper> getNoise(@Query(Constants.API.USER_ID_KEY) String userId);
 }
