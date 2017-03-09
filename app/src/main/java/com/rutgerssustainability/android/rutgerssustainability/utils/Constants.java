@@ -24,6 +24,8 @@ public class Constants {
         //endpoints
         public static final String POST_TRASH_ENDPOINT = "/trash/postTrash";
         public static final String GET_TRASH_ENDPOINT = "/trash/getTrashByUserId";
+        public static final String POST_NOISE_ENDPOINT = "/noise/postNoise";
+        public static final String GET_NOISE_ENDPOINT = "/noise/getNoiseByUserId";
 
         //keys
         public static final String PICTURE_KEY = "trashPhoto";
@@ -32,6 +34,8 @@ public class Constants {
         public static final String LON_KEY = "longitude";
         public static final String EPOCH_KEY = "epoch";
         public static final String TAGS_KEY = "tags";
+        public static final String AUDIO_KEY = "audioUrl";
+        public static final String DECIBEL_KEY = "decibels";
     }
 
     public static class DB {

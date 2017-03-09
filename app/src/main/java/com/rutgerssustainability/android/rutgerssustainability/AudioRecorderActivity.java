@@ -31,9 +31,7 @@ public class AudioRecorderActivity extends AppCompatActivity {
 
     //UI
     private Button startRecordingBtn;
-    private Button stopRecordingBtn;
     private Button startPlayingBtn;
-    private Button stopPlayingBtn;
     private TextView recordingStatusTxt;
 
     //media objects
@@ -46,15 +44,15 @@ public class AudioRecorderActivity extends AppCompatActivity {
     //variables
     private String deviceId = null;
     private String fileName = null;
+    private boolean isRecording = false;
+    private boolean isPlaying = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_recorder);
         startRecordingBtn = (Button)findViewById(R.id.start_recording_btn);
-        stopRecordingBtn = (Button)findViewById(R.id.stop_recording_btn);
         startPlayingBtn = (Button)findViewById(R.id.start_playing_btn);
-        stopPlayingBtn = (Button)findViewById(R.id.stop_playing_btn);
         recordingStatusTxt = (TextView)findViewById(R.id.recording_status_txt);
         recordingStatusTxt.setTextColor(Color.RED);
         recordingStatusTxt.setText(NOT_RECORDING);
@@ -69,29 +67,23 @@ public class AudioRecorderActivity extends AppCompatActivity {
         startRecordingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startRecording();
-            }
-        });
-        stopRecordingBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopRecording();
+                if (!isRecording) {
+                    startRecording();
+                } else {
+                    stopRecording();
+                }
             }
         });
         startPlayingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startPlaying();
+                if (!isPlaying) {
+                    startPlaying();
+                } else {
+                    stopPlaying();
+                }
             }
         });
-
-        stopPlayingBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopPlaying();
-            }
-        });
-
     }
 
     @Override
@@ -144,6 +136,8 @@ public class AudioRecorderActivity extends AppCompatActivity {
         mediaRecorder.start();
         recordingStatusTxt.setTextColor(Color.GREEN);
         recordingStatusTxt.setText(RECORDING);
+        isRecording = true;
+        startRecordingBtn.setText(getString(R.string.stop_record_title));
     }
 
     private void stopRecording() {
@@ -153,6 +147,8 @@ public class AudioRecorderActivity extends AppCompatActivity {
             mediaRecorder = null;
             recordingStatusTxt.setTextColor(Color.RED);
             recordingStatusTxt.setText(NOT_RECORDING);
+            isRecording = false;
+            startRecordingBtn.setText(getString(R.string.start_record_title));
         }
     }
 
@@ -163,6 +159,8 @@ public class AudioRecorderActivity extends AppCompatActivity {
                 mediaPlayer.setDataSource(fileName);
                 mediaPlayer.prepare();
                 mediaPlayer.start();
+                isPlaying = true;
+                startPlayingBtn.setText(getString(R.string.start_playing_title));
             } else {
                 Toast.makeText(this,"No recording available!",Toast.LENGTH_SHORT).show();
             }
@@ -176,6 +174,8 @@ public class AudioRecorderActivity extends AppCompatActivity {
             mediaPlayer.stop();
             mediaPlayer.release();
             mediaPlayer = null;
+            isPlaying = false;
+            startPlayingBtn.setText(getString(R.string.stop_playing_title));
         }
     }
 

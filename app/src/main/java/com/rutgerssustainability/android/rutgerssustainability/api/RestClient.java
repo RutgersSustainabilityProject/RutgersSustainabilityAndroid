@@ -13,6 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class RestClient {
 
     private TrashService trashService;
+    private NoiseService noiseService;
 
     public RestClient() {
         Retrofit retrofit = new Retrofit.Builder()
@@ -20,9 +21,13 @@ public class RestClient {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         trashService = retrofit.create(TrashService.class);
+        noiseService = retrofit.create(NoiseService.class);
     }
 
     public TrashService getTrashService() {
         return trashService;
+    }
+    public NoiseService getNoiseService() {
+        return noiseService;
     }
 }
