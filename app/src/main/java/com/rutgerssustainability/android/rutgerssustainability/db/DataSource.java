@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.google.gson.Gson;
+import com.rutgerssustainability.android.rutgerssustainability.pojos.Noise;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.Trash;
 import com.rutgerssustainability.android.rutgerssustainability.utils.Constants;
 
@@ -100,6 +101,22 @@ public class DataSource {
         }
         cursor.close();
         return trashList;
+    }
+
+    public void addNoise(final Noise noise) {
+        final String json = gson.toJson(noise);
+        final String insertCommand = "insert into " + Constants.DB.TABLE_NOISE
+                + " VALUES('" + noise.getUniqueId() + "', '" + json + "');";
+        db.execSQL(insertCommand);
+    }
+
+    public boolean hasNoise(final Noise noise) {
+        final String selectCommand = "SELECT * FROM " + Constants.DB.TABLE_NOISE +
+                " WHERE " + Constants.DB.COLUMN_NOISE_ID + " = '" + noise.getUniqueId() + "'";
+        final Cursor cursor = db.rawQuery(selectCommand, null);
+        final boolean exists = cursor.moveToFirst();
+        cursor.close();
+        return exists;
     }
 
    public void deleteTrashTable() {

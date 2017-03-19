@@ -11,4 +11,5 @@
     <string name="stop_record_title">Stop Recording</string>
     <string name="start_playing_title">Start Playing</string>
     <string name="stop_playing_title">Stop Playing</string>
+    <string name="send_audio_title">Send Audio</string>
 </resources>

@@ -31,6 +31,7 @@ import com.google.android.gms.location.LocationServices;
 import com.rutgerssustainability.android.rutgerssustainability.api.RestClient;
 import com.rutgerssustainability.android.rutgerssustainability.api.TrashService;
 import com.rutgerssustainability.android.rutgerssustainability.aws.AWSHelper;
+import com.rutgerssustainability.android.rutgerssustainability.aws.AmazonService;
 import com.rutgerssustainability.android.rutgerssustainability.db.DataSource;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.Trash;
 import com.rutgerssustainability.android.rutgerssustainability.pojos.TrashWrapper;
@@ -99,7 +100,7 @@ public class AfterPhotoActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 String tags = tagsField.getText().toString();
-                new AmazonService(getApplicationContext(),photoPath,tags).execute();
+                new AmazonService(AfterPhotoActivity.this,photoPath,tags,dataSource, mDeviceId, mLastLocation,-1).execute();
             }
         });
         cancelBtn.setOnClickListener(new View.OnClickListener() {
@@ -110,109 +111,7 @@ public class AfterPhotoActivity extends AppCompatActivity implements
         });
     }
 
-    private class AmazonService extends AsyncTask<String, Boolean, Boolean> {
-        Context mContext;
-        String mPhotoPath;
-        String mTags;
-        boolean go = false;
-        public AmazonService(final Context context, final String photoPath, final String tags) {
-            mContext = context;
-            mPhotoPath = photoPath;
-            mTags = tags;
-        }
 
-        @Override
-        protected Boolean doInBackground(final String ... params) {
-            final String newTags = processTags(mTags);
-            final File file = new File(mPhotoPath);
-            final TransferUtility transferUtility = AWSHelper.getTransferUtility(getApplicationContext());
-            Log.d(TAG, "file size: " + file.length());
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    final ProgressDialog progressDialog = new ProgressDialog(AfterPhotoActivity.this);
-                    progressDialog.setTitle("Uploading...");
-                    progressDialog.setMax(100);
-
-                    final TransferObserver transferObserver = transferUtility.upload(Constants.AWS.BUCKET_NAME,
-                            file.getName(),
-                            file,
-                            CannedAccessControlList.PublicRead);
-                    transferObserver.setTransferListener(new TransferListener() {
-                        @Override
-                        public void onStateChanged(final int id, final TransferState state) {
-                            Log.d(TAG, "State: " + state.name());
-                            if (state == TransferState.COMPLETED) {
-                                progressDialog.setIndeterminate(true);
-                                progressDialog.setTitle("Saving...");
-                                final String fileS3Url = AWSHelper.createS3FileUrl(file.getName());
-                                Log.d(TAG, "s3 Url: " + fileS3Url);
-                                final MultipartBody.Part imagePart = MultipartBody.Part.createFormData(Constants.API.PICTURE_KEY, fileS3Url);
-                                final MultipartBody.Part userIdPart = MultipartBody.Part.createFormData(Constants.API.USER_ID_KEY, mDeviceId);
-                                final MultipartBody.Part latitudePart = MultipartBody.Part.createFormData(Constants.API.LAT_KEY, String.valueOf(mLastLocation.getLatitude()));
-                                final MultipartBody.Part longitudePart = MultipartBody.Part.createFormData(Constants.API.LON_KEY, String.valueOf(mLastLocation.getLongitude()));
-                                long epoch = System.currentTimeMillis();
-                                final MultipartBody.Part epochPart = MultipartBody.Part.createFormData(Constants.API.EPOCH_KEY, String.valueOf(epoch));
-                                final MultipartBody.Part tagsPart = MultipartBody.Part.createFormData(Constants.API.TAGS_KEY, newTags);
-                                final RestClient restClient = new RestClient();
-                                final TrashService trashService = restClient.getTrashService();
-                                final Call<TrashWrapper> call = trashService.postTrash(imagePart, userIdPart, latitudePart, longitudePart, epochPart, tagsPart);
-                                call.enqueue(new Callback<TrashWrapper>() {
-                                    @Override
-                                    public void onResponse(final Call<TrashWrapper> call, final Response<TrashWrapper> response) {
-                                        Log.d(TAG, "Call Success!");
-                                        Log.d(TAG, "Response message: " + response.message());
-                                        progressDialog.dismiss();
-                                        final TrashWrapper trashWrapper = response.body();
-                                        final Trash[] trashArray = trashWrapper.getTrash();
-                                        final Trash trash = trashArray[0];
-                                        try {
-                                            dataSource.open();
-                                            if (!dataSource.hasTrash(trash)) {
-                                                dataSource.addTrash(trash);
-                                            }
-                                            dataSource.close();
-                                        } catch (final SQLException e) {
-                                            Log.e(TAG,e.getMessage());
-                                        }
-                                        final AlertDialog dialog = AlertDialogHelper.createAlertDialog(AfterPhotoActivity.this,"Trash posted!",null,true);
-                                        dialog.show();
-                                    }
-
-                                    @Override
-                                    public void onFailure(final Call<TrashWrapper> call, final Throwable t) {
-                                        Log.e(TAG, "Call failed: " + t.getMessage());
-                                        progressDialog.dismiss();
-                                    }
-                                });
-                            }
-                        }
-
-                        @Override
-                        public void onProgressChanged(final int id, final long bytesCurrent, final long bytesTotal) {
-                            final double percentage = (double) bytesCurrent / (double) bytesTotal;
-                            final int points = (int) (percentage * 100);
-                            progressDialog.setProgress(points);
-                            if (!go) {
-                                progressDialog.show();
-                                go = true;
-                            }
-                            Log.d(TAG, "bytesCurrent: " + bytesCurrent);
-                        }
-
-                        @Override
-                        public void onError(final int id, final Exception ex) {
-                            Log.e(TAG, "AWS ERROR: " + ex.getMessage());
-                        }
-                    });
-
-                }
-            });
-
-            return true;
-        }
-
-    }
 
     @Override
     public void onStart() {
@@ -296,25 +195,6 @@ public class AfterPhotoActivity extends AppCompatActivity implements
         }
     }
 
-    private String processTags(final String tags) {
-        final String[] tagArray = tags.split(",");
-        final int len = tagArray.length;
-        for (int i = 0; i < len; i++) {
-            String tag = tagArray[i];
-            tag = tag.replaceAll("\\s+","");
-            tagArray[i] = tag;
-        }
-        final StringBuilder tagBuilder = new StringBuilder();
-        for (int i = 0; i < len; i++) {
-            final String tag = tagArray[i];
-            tagBuilder.append(tag);
-            if (i != tagArray.length - 1) {
-                tagBuilder.append(",");
-            }
-        }
-        final String processedTags = tagBuilder.toString();
-        return processedTags;
-    }
 
 
 }

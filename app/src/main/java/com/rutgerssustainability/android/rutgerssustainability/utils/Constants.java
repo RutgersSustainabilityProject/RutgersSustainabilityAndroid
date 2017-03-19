@@ -45,9 +45,11 @@ public class Constants {
 
         //table names
         public static final String TABLE_TRASH = "trash";
+        public static final String TABLE_NOISE = "noise";
 
         //column names
         public static final String COLUMN_TRASH_ID = "trashId";
+        public static final String COLUMN_NOISE_ID = "noiseId";
         public static final String COLUMN_JSON = "json";
     }
 
