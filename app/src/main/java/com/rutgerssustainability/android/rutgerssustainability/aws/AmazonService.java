@@ -131,18 +131,6 @@ public class AmazonService extends AsyncTask<String,Boolean,Boolean> {
                                     @Override
                                     public void onResponse(Call<NoiseWrapper> call, Response<NoiseWrapper> response) {
                                         progressDialog.dismiss();
-                                        final NoiseWrapper noiseWrapper = response.body();
-                                        final Noise[] noiseArray = noiseWrapper.getNoise();
-                                        final Noise noise = noiseArray[0];
-                                        try {
-                                            mDataSource.open();
-                                            if (!mDataSource.hasNoise(noise)) {
-                                                mDataSource.addNoise(noise);
-                                            }
-                                            mDataSource.close();
-                                        } catch (final  SQLException e) {
-                                            Log.e(TAG, e.getMessage());
-                                        }
                                         final AlertDialog dialog = AlertDialogHelper.createAlertDialog(mContext, "Posted!", null, true);
                                         dialog.show();
                                     }

@@ -132,7 +132,7 @@ public class AudioRecorderActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 final String tags = tagsField.getText().toString();
-                if (fileName != null) {
+                if (fileName == null) {
                     Toast.makeText(AudioRecorderActivity.this,"No recording available!",Toast.LENGTH_SHORT).show();
                 } else {
                     new AmazonService(AudioRecorderActivity.this, fileName, tags, dataSource, deviceId, lastLocation,avgDecibel).execute();
