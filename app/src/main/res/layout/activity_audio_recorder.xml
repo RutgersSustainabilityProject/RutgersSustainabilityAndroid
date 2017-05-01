@@ -14,10 +14,19 @@
 
     <Button
             android:id="@+id/start_recording_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/start_record_title"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:background="@drawable/mic_for_rusus"
             android:layout_gravity="center_horizontal"
+        />
+
+    <TextView
+        android:id="@+id/audio_btn_state_desc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
         />
 
     <TextView

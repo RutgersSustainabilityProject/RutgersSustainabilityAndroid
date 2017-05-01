@@ -50,6 +50,7 @@ public class AudioRecorderActivity extends AppCompatActivity implements
     private TextView recordingStatusTxt;
     private TextView decibelValueTxt;
     private EditText tagsField;
+    private TextView audioBtnStatusDesc;
 
     //media objects
     private MediaRecorder mediaRecorder = null;
@@ -98,6 +99,8 @@ public class AudioRecorderActivity extends AppCompatActivity implements
         recordingStatusTxt = (TextView)findViewById(R.id.recording_status_txt);
         recordingStatusTxt.setTextColor(Color.RED);
         recordingStatusTxt.setText(NOT_RECORDING);
+        audioBtnStatusDesc = (TextView)findViewById(R.id.audio_btn_state_desc);
+        audioBtnStatusDesc.setText("Start Recording");
         decibelValueTxt = (TextView)findViewById(R.id.decibel_value_txt);
         sharedPreferenceUtil = new SharedPreferenceUtil(this);
         dataSource = new DataSource(this);
@@ -212,7 +215,7 @@ public class AudioRecorderActivity extends AppCompatActivity implements
         recordingStatusTxt.setTextColor(Color.GREEN);
         recordingStatusTxt.setText(RECORDING);
         isRecording = true;
-        startRecordingBtn.setText(getString(R.string.stop_record_title));
+        audioBtnStatusDesc.setText(getString(R.string.stop_record_title));
         decibelValueTxt.setText("");
         avgDecibel = 0.0;
         updater.run();
@@ -226,7 +229,7 @@ public class AudioRecorderActivity extends AppCompatActivity implements
             recordingStatusTxt.setTextColor(Color.RED);
             recordingStatusTxt.setText(NOT_RECORDING);
             isRecording = false;
-            startRecordingBtn.setText(getString(R.string.start_record_title));
+            audioBtnStatusDesc.setText(getString(R.string.start_record_title));
             handler.removeCallbacks(updater);
             avgDecibel = totalDecibels / decibleMeasureCount;
             avgDecibel = Math.abs(avgDecibel);
